@@ -290,12 +290,37 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
   }
 
+  Future<void> deleteFile() async {
+    try {
+      var file = File(_filename);
+
+      if (await file.exists()) {
+        // file exits, it is safe to call delete on it
+        await file.delete();
+      }
+
+    } catch (e) {
+      // error in getting access to the file
+    }
+  }
+
   void _remove() {
     setState(() {
       if (_markers.containsKey(selectedMarker)) {
         _markers.remove(selectedMarker);
       }
     });
+    //delete image in Download folder
+    deleteFile();
+    //update list
+    MyLatLng l1 = myLatLng.removeLast();
+    MyLatLng l2 = myLatLng.last;
+    _filename = l2.file;
+    //write json file
+    String jsonTags = jsonEncode(myLatLng);
+    jsonFile = File('$_dir/$fileName');
+    jsonFile.writeAsStringSync(jsonTags);
+
   }
 
   //map end
