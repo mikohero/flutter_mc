@@ -1,5 +1,5 @@
 # flutter_mc
-MC MAP
+MC MAP - Motorcycle app in Flutter
 When the user is driving on his MC, he can use a map and see where he is driving. Without internet and only location activated. This is pure phone based. 
 
 Now the user can connect his action camera to the phone. I have chosen SJ4000 WIFI action camera, because this camera has a webservice point, where you can call all the actions from based on URLs. So this makes it possible to control the camera from the App. 
