@@ -38,6 +38,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
   //properties camera
   String inputdata = 'Camera';
+  String _newFile = "";
   final Permission _permission=Permission.storage;
   String _dir = "";
   String _filename = "";
@@ -70,7 +71,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
   void findDirFile() async{
     _dir = await ExtStorage.getExternalStoragePublicDirectory(ExtStorage.DIRECTORY_DOWNLOADS);
-    _filename = await getLastPhotoFromCamera();
+    //_filename = await getLastPhotoFromCamera();
   }
 
   //get files from browsing and locate newest file to download
@@ -80,17 +81,20 @@ class _MyMapCameraState extends State<MyMapCamera> {
     var val;
     if (response.statusCode == 200) {
       var document = parse(response.body);
+      print("document: "+document.toString());
       //newest photo is last with 2 x a href.
       //get all the a href into a list
       var list = document.getElementsByTagName('a');
       //get the second list a href from list - last is for delete
       var len = list.length-2;
       var elemen1 = list[len];
+      print("element: "+elemen1.toString());
       //run through the attributes. only one in a - href
       elemen1.attributes.forEach((k, v) {
         print('{ key: $k, value: $v }');
         val = v;
       });
+      print("getLastPhotoFromCamera: "+val);
       return val;
     }else {
       return 'fail';
@@ -98,7 +102,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
   }
 
   //take photo
-  void _takePhotoImage() async {
+  Future<String> _takePhotoImage() async {
     final String url = 'http://192.168.1.254/?custom=1&cmd=1001';
     String myLocalString='no Photo';
     var response = await http.get(url);
@@ -110,7 +114,6 @@ class _MyMapCameraState extends State<MyMapCamera> {
       var status = data['Function']['Status'];
       if (status == 0) {
         myLocalString = 'photo OK';
-        _filename = await getLastPhotoFromCamera();
       }else if (status == -13) {
         myLocalString = 'Camera not in photo mode';
       }else if (status == -22) {
@@ -122,16 +125,17 @@ class _MyMapCameraState extends State<MyMapCamera> {
     setState(() {
       inputdata = myLocalString;
     });
+    return myLocalString;
   }
 
-  void downloadFileFromCamera() async {
+  Future<String> downloadFileFromCamera() async {
 
 
     //if file is found - more check above maybe
     if (_filename != "fail"){
       http.Client client = new http.Client();
       var url = 'http://192.168.1.254'+_filename;
-      String newText = _filename.substring(12,_filename.length);
+      _newFile = _filename.substring(12,_filename.length);
 
 
       var req = await client.get(Uri.parse(url));
@@ -139,7 +143,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
       var bytes = req.bodyBytes;
 
 
-      File file = File('$_dir/$newText');
+      File file = File('$_dir/$_newFile');
 
       var status = await Permission.storage.status;
       if (!status.isGranted) {
@@ -150,11 +154,12 @@ class _MyMapCameraState extends State<MyMapCamera> {
       setState(() {
         inputdata = "photo downloaded";
       });
-
+      return "photo downloaded";
     }else {
       setState(() {
         inputdata = "Failed to get photoname";
       });
+      return "photo not downloaded";
     }
   }
 
@@ -246,16 +251,15 @@ class _MyMapCameraState extends State<MyMapCamera> {
     _stopListen();
   }
 
-  void add1(){
-    String jsonTags = jsonEncode(myLatLng);
-    print(jsonTags);
-  }
 
-  void _add() {
+  void _add() async {
     //image start
     //take photo and send to download. Hold filename
-    _takePhotoImage();
-    downloadFileFromCamera();
+    String myResult = await _takePhotoImage();
+    _filename = await getLastPhotoFromCamera();
+    print("add: "+_filename);
+    String isDownloaded=await downloadFileFromCamera();
+    print("add: "+isDownloaded);
     //image end
 
     final int markerCount = _markers.length;
@@ -264,9 +268,10 @@ class _MyMapCameraState extends State<MyMapCamera> {
     final MarkerId markerId = MarkerId(markerIdVal);
     selectedMarker = markerId;
     //log('data: $_location.latitude');
-    myLatLng.add(MyLatLng('$_filename',_location.latitude.toString(), _location.longitude.toString()));
+    myLatLng.add(MyLatLng(_newFile,_location.latitude.toString(), _location.longitude.toString()));
 
     String jsonTags = jsonEncode(myLatLng);
+    print(jsonTags);
     jsonFile = File('$_dir/$fileName');
     jsonFile.writeAsStringSync(jsonTags);
 
@@ -360,11 +365,9 @@ class _MyMapCameraState extends State<MyMapCamera> {
               ListTile(
                 leading: Icon(Icons.settings),
                 title: Text('Settings'),
-                onTap: (){Navigator.pushNamed(context, '/MySettings');},
-              ),
-              ListTile(
-                leading: Icon(Icons.account_circle),
-                title: Text('Profile'),
+                onTap: (){
+                  Navigator.pushNamed(context, '/MySettings');
+                  },
               ),
             ],
           ),
@@ -389,7 +392,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
                   color: Colors.blue,
                   textColor: Colors.white,
                   onPressed: () {
-                    add1();
+                    _add();
                   },
                   child: Text(
                     "MARK",
