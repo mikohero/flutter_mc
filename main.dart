@@ -1,13 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
 import 'MyMap.dart';
 import 'AutoMyMap.dart';
-import 'MyFirstPage.dart';
+//import 'MyFirstPage.dart';
 import 'ShowMaps.dart';
-import 'Settings.dart';
-import 'MyMapStart.dart';
-import 'MyCamera1.dart';
-import 'Splash.dart';
+import 'SendDataToServer.dart';
+//import 'MyMapStart.dart';
+//import 'MyCamera1.dart';
+//import 'Splash.dart';
 import 'MyMapCamera1.dart';
+//import 'SendDataToServer.dart';
 
 
 void main() => runApp(MyApp());
@@ -35,10 +37,7 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => MyMapCamera(),
-        '/MyMap': (context) => MyMap(),
-        '/AutoMyApp': (context) => AutoMyApp(),
-        '/MyShowMaps': (context) => MyShowMaps(),
-        '/MySettings': (context) => MySettings(),
+        '/MySettings': (context) => MySendData(),
       },
     );
   }
