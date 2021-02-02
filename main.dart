@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
+import 'package:my_map_mc/MyMapCamera2.dart';
+import'dart:io' show Platform;
 import 'MyMap.dart';
 import 'AutoMyMap.dart';
 //import 'MyFirstPage.dart';
@@ -10,11 +12,21 @@ import 'SendDataToServer.dart';
 //import 'Splash.dart';
 import 'MyMapCamera1.dart';
 //import 'SendDataToServer.dart';
+import 'PhotoCheck.dart';
 
 
-void main() => runApp(MyApp());
+void main() {
+  if(Platform.isIOS){
+    runApp(MyApp1(isIOS: Platform.isIOS));
+  }else if(Platform.isAndroid){
+    runApp(MyApp(isAndroid: Platform.isAndroid));
+  }
+}
 
 class MyApp extends StatelessWidget {
+  final bool isAndroid;
+  MyApp({Key key, @required this.isAndroid}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -37,6 +49,30 @@ class MyApp extends StatelessWidget {
       initialRoute: '/',
       routes: {
         '/': (context) => MyMapCamera(),
+        '/MySettings': (context) => MySendData(),
+        '/MyPhoto': (context) => MyPhotoControl(),
+      },
+    );
+  }
+}
+
+class MyApp1 extends StatelessWidget {
+  final bool isIOS;
+  MyApp1({Key key, @required this.isIOS}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return CupertinoApp(
+      theme: CupertinoThemeData(
+        brightness: Brightness.light,
+        primaryColor: Colors.lightBlue,
+        textTheme: CupertinoTextThemeData(
+
+        ),
+      ),
+      initialRoute: '/',
+      routes: {
+        '/': (context) => MyMapCamera2(),
         '/MySettings': (context) => MySendData(),
       },
     );
