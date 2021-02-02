@@ -25,6 +25,8 @@ class _MyMapCameraState extends State<MyMapCamera> {
   CameraPosition mypos;
   double lat=55.457397;
   double lng=10.371471;
+  double zoom=16.0;
+
   GoogleMapController mapController;
   Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   int _markerIdCounter = 1;
@@ -53,7 +55,8 @@ class _MyMapCameraState extends State<MyMapCamera> {
   @override
   initState() {
     super.initState();
-    mypos=CameraPosition(target: new LatLng(lat, lng),zoom: 16.0,);
+    
+    mypos=CameraPosition(target: new LatLng(lat, lng),zoom: zoom,);
     // set the initial location
     setSourceIcon();
     _listenLocation();
@@ -224,13 +227,18 @@ class _MyMapCameraState extends State<MyMapCamera> {
           //return to previous screen
           Navigator.pushNamed(context, '/first');
         }).listen((LocationData currentLocation) {
+
           setState(() {
             _error = null;
 
             _location = currentLocation;
 
             mypos = CameraPosition(target: new LatLng(_location.latitude, _location.longitude),zoom: 16.0,);
-
+            mapController.moveCamera(
+              CameraUpdate.newCameraPosition(
+                mypos,
+              ),
+            );
             //setupMap();
           });
         });
@@ -369,6 +377,13 @@ class _MyMapCameraState extends State<MyMapCamera> {
                   Navigator.pushNamed(context, '/MySettings');
                   },
               ),
+              ListTile(
+                leading: Icon(Icons.photo),
+                title: Text('PhotoCheck'),
+                onTap: (){
+                  Navigator.pushNamed(context, '/MyPhoto');
+                },
+              ),
             ],
           ),
         ),
@@ -384,6 +399,13 @@ class _MyMapCameraState extends State<MyMapCamera> {
                   onMapCreated: _onMapCreated,
                   initialCameraPosition: mypos,
                   markers: Set<Marker>.of(_markers.values),
+                  onTap: (LatLng latLng) {
+                    // you have latitude and longitude here
+                    var latitude = latLng.latitude;
+                    var longitude = latLng.longitude;
+                    _add();
+                    //call mark here
+                  },
                 ),
               ),
               Expanded(
