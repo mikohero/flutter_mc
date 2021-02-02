@@ -36,6 +36,7 @@ Seems to be working now.
 
 Then I was driving and taking pictures, but my camera was not set perfect - very annoying. 
 So I have made a new page, where I can take a picture with my helmet on and see it on my phone and see how the camera is aligned. Much better now.
+When the page is loaded the path has an error. There is not yet and photos. I do not care about this error for my little app, but using a simple settings.json file, I could save the first image and always use it. This could be initiated already first time -> then no error. It is no problem and just means that image is not loaded from beginning. 
 
 Technology action cam for mc helmet and pocket:
 SJ4000 WIFI cam: https://sjcam.com/product/sj4000/
@@ -48,7 +49,14 @@ USB charger from Bike.
 GPS phone holder For Honda: https://www.ebay.co.uk/itm/Honda-750D-Integra-Navigation-Mounting-GPS-Rack-Mount-2014-2020-/163283799497
 Phone holder: https://www.mytrendyphone.dk/shop/forever-bh-110-universal-216247p.html?gclid=CjwKCAiAgc-ABhA7EiwAjev-jxEwDNaDaC6_OfLGxVV3ewgjZipR5kM0IpphmfG7iwCM1YQZQAj11BoCMsQQAvD_BwE
 
+Now everything is working in Android. It has been a great learning process working with Flutter. I just love it. Much simpler and effective than many other languages to write. I think the biggest issue is to learn about the yaml file when you are using packages and they are out of sync with each other. The solution is not very good, but it is working. 
+It is time to think about IOS. This is a real challenge even for Flutter and no help to find anywhere I have looked. It is like. Now we code this app for Android - now we code this for IOS. There are many small examples online about how to select Android or IOS, but this does not address the two main issues. What to do with widgets and what about the packages in IOS. 
+My thinking is: 
+In my main.dart, I check for Android or IOS. Then I have two UI classes to call in same file. One for Material design and one for Cupertino. 
+These will now point to different UI files with specific UI. Eg AppBar for Android and Tabs for IOS. 
+The code must be moved out of UI classes to pure classes and everything must be realigned inside UI classes. 
+This way I have 2 UIs specific for phone and then some classes with code for both systems. 
 
-
+I will upload my tests later for iOS, when I know more :-)
 
 Contact me if you have any questions. mikommd@gmail.com, thanks
