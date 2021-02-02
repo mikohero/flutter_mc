@@ -30,6 +30,13 @@ User has forgotten to upload last trip. In Settings file - in app-dir - write if
 4.
 When user upload - take one upload, then delete files. update settings. Not done. 
 
+Testing
+Now I have started to test. My Google maps did not move the camera when I was driving, so I updated the code with a specific call to that API part. 
+Seems to be working now. 
+
+Then I was driving and taking pictures, but my camera was not set perfect - very annoying. 
+So I have made a new page, where I can take a picture with my helmet on and see it on my phone and see how the camera is aligned. Much better now.
+
 Technology action cam for mc helmet and pocket:
 SJ4000 WIFI cam: https://sjcam.com/product/sj4000/
 Waterproof housing with powercable: https://www.aliexpress.com/item/33010136407.html?spm=a2g0o.search0302.0.0.125f18b2lRGuCt&algo_pvid=b9d16f47-aa04-44cc-8cd3-8ab0b1c7278d&algo_expid=b9d16f47-aa04-44cc-8cd3-8ab0b1c7278d-3&btsid=0bb0623316119436672255808e4430&ws_ab_test=searchweb0_0,searchweb201602_,searchweb201603_
