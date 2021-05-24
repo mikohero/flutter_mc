@@ -24,10 +24,12 @@ class MyMapCamera1a extends StatefulWidget {
 enum SingingCharacter { photo, video, timeVideo, timePhoto }
 
 class _MyMapCameraState1a extends State<MyMapCamera1a> {
+  Timer t1;
+
   CameraPosition mypos;
   double lat=55.457397;
   double lng=10.371471;
-  double zoom=16.0;
+  double zoom=13.0;
 
   GoogleMapController mapController;
   Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
@@ -139,6 +141,80 @@ class _MyMapCameraState1a extends State<MyMapCamera1a> {
     }else {
       return 'fail';
     }
+  }
+  //this is stopping video after time out. We know camera is in video mode
+  Future<String> handleTimeout() async {  // callback function
+    String myLocalString = 'Video not stopped';
+    Uri uri1 = Uri.parse('http://192.168.1.254/?custom=1&cmd=2001&par=0');
+    var response1 = await http.get(uri1);
+    if (response1.statusCode == 200) {
+
+      myTransformer.parse(response1.body);
+      // Transform to JSON
+      var jsonString1 = myTransformer.toParker();
+      var data1 = convert.jsonDecode(jsonString1);
+      //find Status in XML file
+      var status1 = data1['Function']['Status'];
+      if (status1 == 0) {
+        myLocalString = 'Video stopped';
+      }else if (status1 == -13) {
+        myLocalString = 'Camera not in video mode';
+      } else if (status1 == -22) {
+        myLocalString = 'No MicroSD card';
+      }
+    }
+    return myLocalString;
+  }
+  //take video
+  Future<String> _takePhotoVideo() async {
+    String myLocalString = 'no Video';
+    //change to video mode
+    Uri uri1 = Uri.parse('http://192.168.1.254/?custom=1&cmd=3001&par=1');
+    var response1 = await http.get(uri1);
+    if (response1.statusCode == 200) {
+
+      myTransformer.parse(response1.body);
+      // Transform to JSON
+      var jsonString1 = myTransformer.toParker();
+      var data1 = convert.jsonDecode(jsonString1);
+      //find Status in XML file
+      var status1 = data1['Function']['Status'];
+      if (status1 == 0) { //changed to video mode - start making video
+
+        Uri uri = Uri.parse('http://192.168.1.254/?custom=1&cmd=2001&par=1');
+
+
+        var response = await http.get(uri);
+
+        if (response.statusCode == 200) {
+          myTransformer.parse(response.body);
+          // Transform to JSON
+          var jsonString = myTransformer.toParker();
+          var data = convert.jsonDecode(jsonString);
+          var status = data['Function']['Status'];
+          if (status == 0) {
+            //video started - start timer 5 seconds for stop video
+            var videoTime = const Duration(seconds: 5);
+            t1=Timer(videoTime,handleTimeout);//handleTimeout must stop video
+            //start timer and then stop video after timer
+            myLocalString = 'video OK';
+          } else if (status == -11) {
+            myLocalString = 'MemCard empty';
+          } else if (status == -13) {
+            myLocalString = 'Camera not in video mode';
+          } else if (status == -22) {
+            myLocalString = 'No MicroSD card';
+          } else {
+            myLocalString = "Status number: " + response.statusCode.toString();
+          }
+        }
+
+        setState(() {
+          inputdata = myLocalString;
+        });
+      }//if (status1 == 0)
+    }//if (response1.statusCode == 200)
+    return myLocalString;
   }
 
   //take photo
@@ -274,7 +350,7 @@ class _MyMapCameraState1a extends State<MyMapCamera1a> {
 
             _location = currentLocation;
 
-            mypos = CameraPosition(target: new LatLng(_location.latitude, _location.longitude),zoom: 13.0,);
+            mypos = CameraPosition(target: new LatLng(_location.latitude, _location.longitude),zoom: zoom,);
             mapController.moveCamera(
               CameraUpdate.newCameraPosition(
                 mypos,
@@ -430,6 +506,13 @@ class _MyMapCameraState1a extends State<MyMapCamera1a> {
               title: Text('Settings'),
               onTap: (){
                 Navigator.pushNamed(context, '/MySettings');
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.smart_button),
+              title: Text('Main'),
+              onTap: (){
+                Navigator.pushNamed(context, '/');
               },
             ),
             ListTile(

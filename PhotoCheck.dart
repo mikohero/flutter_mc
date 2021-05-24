@@ -93,9 +93,10 @@ class _MyPhotoControlState extends State<MyPhotoControl> {
 
   //take photo
   Future<String> _takePhotoImage() async {
-    final String url = 'http://192.168.1.254/?custom=1&cmd=1001';
+
+    Uri uri = Uri.parse('http://192.168.1.254/?custom=1&cmd=1001');
     String myLocalString='no Photo';
-    var response = await http.get(url);
+    var response = await http.get(uri);
     if (response.statusCode == 200) {
       myTransformer.parse(response.body);
       // Transform to JSON
@@ -120,8 +121,9 @@ class _MyPhotoControlState extends State<MyPhotoControl> {
 
   //get files from browsing and locate newest file to download
   Future<String> getLastPhotoFromCamera() async {
-    var url = 'http://192.168.1.254/DCIM/PHOTO';
-    var response = await http.get(url);
+
+    Uri uri = Uri.parse('http://192.168.1.254/DCIM/PHOTO');
+    var response = await http.get(uri);
     var val;
     if (response.statusCode == 200) {
       var document = parse(response.body);
@@ -184,9 +186,18 @@ class _MyPhotoControlState extends State<MyPhotoControl> {
                 },
               ),
               ListTile(
-                leading: Icon(Icons.add_location),
+                leading: Icon(Icons.map),
                 title: Text('Map'),
-                onTap: (){Navigator.pushNamed(context, '/');},
+                onTap: (){
+                  Navigator.pushNamed(context, '/MyMap');
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.smart_button),
+                title: Text('Main'),
+                onTap: (){
+                  Navigator.pushNamed(context, '/');
+                },
               ),
             ],
           ),
@@ -198,7 +209,7 @@ class _MyPhotoControlState extends State<MyPhotoControl> {
               Expanded(
                 flex: 7,
                 child: Image(
-                  image: FileImage(File(path))
+                    image: FileImage(File(path))
                 ),
               ),
               Expanded(

@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:my_map_mc/MyMapCamera2.dart';
+import 'package:flutter/services.dart';
+import 'MyMapCamera2.dart';
 import'dart:io' show Platform;
-import 'MyMap.dart';
-import 'AutoMyMap.dart';
+//import 'MyMap.dart';
+//import 'AutoMyMap.dart';
 //import 'MyFirstPage.dart';
-import 'ShowMaps.dart';
+//import 'ShowMaps.dart';
 import 'SendDataToServer.dart';
 //import 'MyMapStart.dart';
 //import 'MyCamera1.dart';
 //import 'Splash.dart';
 import 'MyMapCamera1.dart';
+import 'MyMapCamera1a.dart';
 //import 'SendDataToServer.dart';
 import 'PhotoCheck.dart';
 
@@ -50,6 +52,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/': (context) => MyMapCamera(),
         '/MySettings': (context) => MySendData(),
+        '/MyMap': (context) => MyMapCamera1a(),
         '/MyPhoto': (context) => MyPhotoControl(),
       },
     );
