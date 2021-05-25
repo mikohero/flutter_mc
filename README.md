@@ -1,20 +1,21 @@
 # flutter_mc
 MC MAP - Motorcycle app in Flutter
 
-I was very disappointed with action cameras. They were too expensive and only some stupid apps. I could not even program them. 
-So I decided to find an action Camera with interface for software, so I can make my own setup in app and drive. 
+I was very disappointed with action cameras. They were too expensive and only some bad finished apps. I could not even code the cams. 
+So I decided to find an action Camera with interface for software, so I can make my own setup in app. 
 Then I want to transfer data to web and later make webpage for showing data. 
 
-When the user is driving on his MC, he can use a map and see where he is driving. Without internet and only location activated. This is pure phone based. 
+When the user is driving on his MC, he can use two things. A page with only buttons and geolocation or a page with map and buttons and see where he is driving. Without internet and only location activated.  
 
-Now the user can connect his action camera to the phone. I have chosen SJ4000 WIFI action camera, because this camera has a webservice point, where you can call all the actions from based on URLs. So this makes it possible to control the camera from the App. 
+Now the user can connect his action camera to the phone. I have chosen SJ4000 WIFI action camera, because this camera has a webservice point, where you can call all the actions  based on URLs. So this makes it possible to control the camera from the App. 
 
-When user wants he can "mark" a specific location by pressing the MARK button - on the Map. This will take a lat, lng position and take an image from action camera. 
-The image will be downloaded to the phone - to the download folder - to make it public accessible. 
+
+When user wants he can "mark" a specific location by pressing the MARK button - on the Map page. This will take a lat, lng position and take an image or video from action camera. 
+The image/video will be downloaded to the phone - to the download folder - to make it public accessible. 
 The lat, lng strings and image-string-name will be saved in json format. Also in Download folder.
 The user can take as many "mark"s as he wants during trip.
 The user also has access to "Remove" button, which will remove last image+lat+lng. Then json file will be updated. He can remove until nothing left. 
-When the trip is over all the images are on the phone and a json file with all the lat, lng, image-names. 
+When the trip is over all the images/videos are on the phone and a json file with all the lat, lng, image-names. 
 Now the user decouple the camera and connect to WIFI on his phone. Then on another screen he can first upload the json file and then all the images in the json file to the webserver. There are 2 buttons. 
 On the webserver data will be saved to database. 
 
@@ -32,11 +33,12 @@ When user upload - take one upload, then delete files. update settings. Not done
 
 Testing
 Now I have started to test. My Google maps did not move the camera when I was driving, so I updated the code with a specific call to that API part. 
-Seems to be working now. 
+Working now. 
 
 Then I was driving and taking pictures, but my camera was not set perfect - very annoying. 
 So I have made a new page, where I can take a picture with my helmet on and see it on my phone and see how the camera is aligned. Much better now.
-When the page is loaded the path has an error. There is not yet and photos. I do not care about this error for my little app, but using a simple settings.json file, I could save the first image and always use it. This could be initiated already first time -> then no error. It is no problem and just means that image is not loaded from beginning. 
+
+Now the new page with only buttons and geolocation is ready. No map on that page. image and videos. Easy if no map needed. 
 
 Technology action cam for mc helmet and pocket:
 SJ4000 WIFI cam: https://sjcam.com/product/sj4000/
