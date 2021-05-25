@@ -1,10 +1,11 @@
 import 'dart:async';
 import 'dart:convert';
-//import 'dart:html';
+
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+//import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'LatLng.dart';
-import 'package:location/location.dart';
+//import 'package:location/location.dart';
 import 'package:flutter/services.dart';
 //import camera
 import 'dart:io';
@@ -14,7 +15,7 @@ import 'package:ext_storage/ext_storage.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:xml2json/xml2json.dart';
 import 'dart:convert' as convert;
-import 'package:speech_recognition/speech_recognition.dart';
+//import 'package:animated_button/animated_button.dart';
 
 class MyMapCamera extends StatefulWidget {
   @override
@@ -25,22 +26,21 @@ enum SingingCharacter { photo, video, timeVideo, timePhoto }
 
 class _MyMapCameraState extends State<MyMapCamera> {
   Timer t1;
-
-  CameraPosition mypos;
+  //CameraPosition mypos;
   double lat=55.457397;
   double lng=10.371471;
   double zoom=13.0;
 
-  GoogleMapController mapController;
-  Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
+  //GoogleMapController mapController;
+  //Map<MarkerId, Marker> _markers = <MarkerId, Marker>{};
   int _markerIdCounter = 1;
-  MarkerId selectedMarker;
+  //MarkerId selectedMarker;
   List <MyLatLng> myLatLng = [];
-  Location location = Location();
-  LocationData _location;
-  BitmapDescriptor sourceIcon;
+  //Location location = Location();
+  //LocationData _location;
+  //BitmapDescriptor sourceIcon;
   String _error;
-  StreamSubscription<LocationData> _locationSubscription;
+  //StreamSubscription<LocationData> _locationSubscription;
 
   //properties camera
   String inputdata = 'Camera';
@@ -55,18 +55,33 @@ class _MyMapCameraState extends State<MyMapCamera> {
   File jsonFile;
   String fileName = "myJSONFile.json";
 
+  Position _currentPosition;
+
   @override
   initState() {
     super.initState();
 
-    mypos=CameraPosition(target: new LatLng(lat, lng),zoom: zoom);
+    //mypos=CameraPosition(target: new LatLng(lat, lng),zoom: zoom);
     // set the initial location
     //setSourceIcon();
-    _listenLocation();
+    //_listenLocation();
     initPermission();
     findDirFile();
     //not working - phone is connected to cam locally - no internet - activateSpeechRecognizer();
     //addInitialMarker();
+  }
+  //get location
+  _getCurrentLocation() async {
+    await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.best)
+        .then((Position position) {
+      setState(() {
+        _currentPosition = position;
+        print(_currentPosition .latitude);
+        print(_currentPosition .longitude);
+      });
+    }).catchError((e) {
+      print(e);
+    });
   }
   //camera start
   void initPermission() async{
@@ -117,7 +132,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
       //get video from cam to phone download folder
       _filename = await getLastPhotoFromCamera('http://192.168.1.254/DCIM/MOVIE');
       String isDownloaded=await downloadFileFromCamera();
-      myLatLng.add(MyLatLng(_newFile,_location.latitude.toString(), _location.longitude.toString()));
+      myLatLng.add(MyLatLng(_newFile,_currentPosition.latitude.toString(), _currentPosition.longitude.toString()));
 
       //Each time app take picture+lat+lng, app save data of List to json file
       //create a json string from class objects in list
@@ -136,9 +151,6 @@ class _MyMapCameraState extends State<MyMapCamera> {
       var status1 = data1['Function']['Status'];
       if (status1 == 0) {
         myLocalString = 'Video stopped';
-        //set to photomode again - standard in app
-        uri1 = Uri.parse('http://192.168.1.254/?custom=1&cmd=3001&par=0');
-        response1 = await http.get(uri1);
       }else if (status1 == -13) {
         myLocalString = 'Camera not in video mode';
       } else if (status1 == -22) {
@@ -147,65 +159,19 @@ class _MyMapCameraState extends State<MyMapCamera> {
     }
     return myLocalString;
   }
-  //take video
-  Future<String> _takePhotoVideo() async {
-    String myLocalString = 'no Video';
-    //change to video mode
-    Uri uri1 = Uri.parse('http://192.168.1.254/?custom=1&cmd=3001&par=1');
-    var response1 = await http.get(uri1);
-    if (response1.statusCode == 200) {
 
-      myTransformer.parse(response1.body);
-      // Transform to JSON
-      var jsonString1 = myTransformer.toParker();
-      var data1 = convert.jsonDecode(jsonString1);
-      //find Status in XML file
-      var status1 = data1['Function']['Status'];
-      if (status1 == 0) { //changed to video mode - start making video
-
-        Uri uri = Uri.parse('http://192.168.1.254/?custom=1&cmd=2001&par=1');
-
-
-        var response = await http.get(uri);
-
-        if (response.statusCode == 200) {
-          myTransformer.parse(response.body);
-          // Transform to JSON
-          var jsonString = myTransformer.toParker();
-          var data = convert.jsonDecode(jsonString);
-          var status = data['Function']['Status'];
-          if (status == 0) {
-            //video started - start timer 5 seconds for stop video
-            var videoTime = const Duration(seconds: 5);
-            t1=Timer(videoTime,handleTimeout);//handleTimeout must stop video
-            //start timer and then stop video after timer
-            myLocalString = 'video OK';
-          } else if (status == -11) {
-            myLocalString = 'MemCard empty';
-          } else if (status == -13) {
-            myLocalString = 'Camera not in video mode';
-          } else if (status == -22) {
-            myLocalString = 'No MicroSD card';
-          } else {
-            myLocalString = "Status number: " + response.statusCode.toString();
-          }
-        }
-
-        setState(() {
-          inputdata = myLocalString;
-        });
-      }//if (status1 == 0)
-    }//if (response1.statusCode == 200)
-    return myLocalString;
-  }
 
   //take photo
   Future<String> _takePhotoImage() async {
+    //switching to photomode
+    Uri uri = Uri.parse('http://192.168.1.254/?custom=1&cmd=3001&par=0');
+    var response = await http.get(uri);
 
-    Uri uri = Uri.parse('http://192.168.1.254/?custom=1&cmd=1001');
+    //take photo
+    uri = Uri.parse('http://192.168.1.254/?custom=1&cmd=1001');
 
     String myLocalString='no Photo';
-    var response = await http.get(uri);
+    response = await http.get(uri);
 
     if (response.statusCode == 200) {
       myTransformer.parse(response.body);
@@ -266,58 +232,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
   //camera end
 
-  //map start
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-  }
 
-  Future<void> _getLocation() async {
-    setState(() {
-      _error = null;
-    });
-    try {
-      final LocationData _locationResult = await location.getLocation();
-      setState(() {
-        _location = _locationResult;
-      });
-    } on PlatformException catch (err) {
-      setState(() {
-        _error = err.code;
-      });
-    }
-  }
-
-
-  Future<void> _listenLocation() async {
-    _locationSubscription =
-        location.onLocationChanged.handleError((dynamic err) {
-          setState(() {
-            _error = err.code;
-          });
-          _locationSubscription.cancel();
-          //return to previous screen
-          Navigator.pushNamed(context, '/first');
-        }).listen((LocationData currentLocation) {
-
-          setState(() {
-            _error = null;
-
-            _location = currentLocation;
-
-            mypos = CameraPosition(target: new LatLng(_location.latitude, _location.longitude),zoom: zoom,);
-            /*mapController.moveCamera(
-              CameraUpdate.newCameraPosition(
-                mypos,
-              ),
-            );*/
-            //setupMap();
-          });
-        });
-  }
-
-  Future<void> _stopListen() async {
-    _locationSubscription.cancel();
-  }
 
   @override
   void deactivate(){
@@ -327,22 +242,77 @@ class _MyMapCameraState extends State<MyMapCamera> {
   @override
   void dispose() {
     super.dispose();
-    _stopListen();
+    //_stopListen();
+
+  }
+  void test() {
+    print("test");
+
+  }
+  //take video
+  Future<String> _takePhotoVideo() async {
+    String myLocalString = 'no Video';
+    print("take video");
+
+    //change to video mode
+    Uri uri1 = Uri.parse('http://192.168.1.254/?custom=1&cmd=3001&par=1');
+    var response = await http.get(uri1);
+
+    //record video
+    uri1 = Uri.parse('http://192.168.1.254/?custom=1&cmd=2001&par=1');
+
+
+        response = await http.get(uri1);
+    //video started - start timer 5 seconds for stop video
+    var videoTime = const Duration(seconds: 5);
+    t1=Timer(videoTime,handleTimeout);//handleTimeout must stop video
+    //start timer and then stop video after timer
+        if (response.statusCode == 200) {
+          myTransformer.parse(response.body);
+          // Transform to JSON
+          var jsonString = myTransformer.toParker();
+          var data = convert.jsonDecode(jsonString);
+          var status = data['Function']['Status'];
+          if (status == 0) {
+
+            myLocalString = 'video OK';
+          } else if (status == -11) {
+            myLocalString = 'MemCard empty';
+          } else if (status == -13) {
+            myLocalString = 'Camera not in video mode';
+          } else if (status == -22) {
+            myLocalString = 'No MicroSD card';
+          } else {
+            myLocalString = "Status number: " + response.statusCode.toString();
+          }
+        }
+
+        setState(() {
+          inputdata = myLocalString;
+        });
 
   }
 
-  //take photo and transfer to download folder
-  //then make a new Marker
-  //write extend json file with both
-  //finally create the new Marker in Google Maps
-  void _add() async {
+  _addVideo() async {
+    await _getCurrentLocation();
+    String myResult = await _takePhotoVideo();
+
+  }
+
+  _add() async {
+
+    await _getCurrentLocation();
     //take the photo - no check for now of fault
     String myResult = await _takePhotoImage();
     //return string with filename or string fail - no check for now of fail
     _filename = await getLastPhotoFromCamera('http://192.168.1.254/DCIM/PHOTO');
-    //print("add: "+_filename);
+    print("add: "+_filename);
     //download image to download folder on android phone
     String isDownloaded=await downloadFileFromCamera();
+    //add the filename, lat, lon to List of Classes
+    myLatLng.add(MyLatLng(_newFile,_currentPosition.latitude.toString(), _currentPosition.longitude.toString()));
+
+
     //print("add: "+isDownloaded);
     //image end
     //Now create the marker
@@ -350,7 +320,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
     //log('data: $_location.latitude');
     //add the filename, lat, lon to List of Classes
-    myLatLng.add(MyLatLng(_newFile,_location.latitude.toString(), _location.longitude.toString()));
+    myLatLng.add(MyLatLng(_newFile,_currentPosition.latitude.toString(), _currentPosition.longitude.toString()));
 
     //Each time app take picture+lat+lng, app save data of List to json file
     //create a json string from class objects in list
@@ -381,9 +351,12 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
   void _remove() {
     setState(() {
+      /*
       if (_markers.containsKey(selectedMarker)) {
         _markers.remove(selectedMarker);
       }
+
+       */
     });
     //delete image in Download folder
     deleteFile();
@@ -402,12 +375,12 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
   @override
   Widget build(BuildContext context) {
-
+    /*
     final GoogleMap googleMap = GoogleMap(
       initialCameraPosition: mypos,
       onMapCreated: _onMapCreated,
     );
-
+  */
     return Scaffold(
       appBar: AppBar(
 
@@ -468,6 +441,29 @@ class _MyMapCameraState extends State<MyMapCamera> {
       ),
     );
   }
+  /*
+  Widget buildAnimatedButton(int myFlex, Function f, String s, double fSize, Color fColor, Color bColor, Color tColor, String fFamily) => Expanded(
+    flex: myFlex,
+    child: SizedBox.expand(
+      child: AnimatedButton(
+        child: Text(
+          s,
+          style: TextStyle(
+            fontSize: fSize,
+            color: fColor,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        color: bColor,
+        onPressed: () => f,
+        enabled: true,
+        shadowDegree: ShadowDegree.light,
+        width: 400,
+      ),
+    ),
+  );
+
+   */
   Widget buildButton(int myFlex, Function f, String s, double fSize, Color fColor, Color bColor, Color tColor, String fFamily) => Expanded(
     flex: myFlex,
     child: SizedBox.expand(
@@ -478,7 +474,7 @@ class _MyMapCameraState extends State<MyMapCamera> {
         ),
         //color: Colors.blue,
         //textColor: Colors.white,
-        onPressed: () => f,
+        onPressed: f,
         child: Text(
           s,
           style: TextStyle(
@@ -495,11 +491,17 @@ class _MyMapCameraState extends State<MyMapCamera> {
   Widget buildLandscape() => Row(
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: <Widget>[
+      //buildAnimatedButton(2, _add, "Anim", 22.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
+      //SizedBox(width: 5),
+
       buildButton(2, _add, "PHOTO", 22.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
       SizedBox(width: 5),
-      buildButton(2, _takePhotoVideo, "VIDEO", 22.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
+      buildButton(2, _addVideo, "VIDEO", 22.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
       SizedBox(width: 5),
       buildButton(2, _remove, "DELETE", 22.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
+
+
+
     ],
   );
 
@@ -507,12 +509,42 @@ class _MyMapCameraState extends State<MyMapCamera> {
 
     crossAxisAlignment: CrossAxisAlignment.stretch,
     children: <Widget>[
-      buildButton(2, _add, "PHOTO", 48.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
+      //buildAnimatedButton(2, test, "Anim", 22.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
+      //SizedBox(height: 5),
+
+      buildButton(2, _add, "PHOTO", 48.0, Colors.white, Colors.green, Colors.white, "Roboto-Black"),
       SizedBox(height: 5),
-      buildButton(2, _takePhotoVideo, "VIDEO", 48.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
+
+      buildButton(2, _addVideo, "VIDEO", 48.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
       SizedBox(height: 5),
       buildButton(2, _remove, "DELETE", 48.0, Colors.white, Colors.blue, Colors.white, "Roboto-Black"),
 
+
+      /*
+    Expanded(
+    flex: 2,
+    child: SizedBox.expand(
+      child: TextButton(
+        style: ButtonStyle(
+          foregroundColor: MaterialStateProperty.all<Color>(Colors.white),
+          backgroundColor: MaterialStateProperty.all<Color>(Colors.green),
+        ),
+        //color: Colors.blue,
+        //textColor: Colors.white,
+        onPressed: () => _add(),
+        child: Text(
+          "PHOTO",
+          style: TextStyle(
+            fontFamily: "Roboto-Black",
+            fontSize: 48.0,
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ),
+  )
+
+       */
 
     ],
   );
